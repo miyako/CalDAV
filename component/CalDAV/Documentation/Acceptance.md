@@ -59,6 +59,13 @@ not exhaustive occurrence matching or live DST/custom-zone behavior.
 
 ## Publication boundary
 
+The published initial release is
+[`0.1.2`](https://github.com/miyako/CalDAV/releases/tag/0.1.2). Its original
+signed pipeline used `v0.1.2`; the subsequent explicitly authorized
+[metadata-only migration](Release-migration.md) preserves the accepted commit
+and all four original assets, with a separate required migration record.
+Original build proof/evidence are unchanged, not rewritten to claim a new run.
+
 The first [Publish attempt](https://github.com/miyako/CalDAV/actions/runs/42126792241)
 created the `0.1.1` metadata commit
 `d35c3e2fad16d58f30a1a5ee315057d2625d55f9`, then stopped at three version-test

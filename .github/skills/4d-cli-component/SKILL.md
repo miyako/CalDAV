@@ -83,7 +83,10 @@ or packaging; do not turn an SDK requirement into a component resource.
    configured version when none exists), synchronizes version metadata/contracts/
    docs and commits to main. Build/test that exact SHA through reusable CI.
    Downloaded asset/hash/host-evidence and collision checks precede new tag/release
-   creation. Do not precreate tags or enable tag-push publication.
+   creation. CalDAV tags are bare SemVer, such as `0.1.2`, never prefixed with `v`.
+   Do not precreate tags or enable tag-push publication. The specifically approved
+   historical `0.1.2` metadata migration uses its separate registered record and
+   verifier; it does not relax normal release validation.
 
 ## Discovery is supported, invocation is not guaranteed
 

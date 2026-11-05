@@ -112,6 +112,11 @@ for exact fields, limits, statuses, time representations and error codes.
 
 After an approved release, add GitHub dependency `miyako/CalDAV` in the host's
 Dependency manager and select its version; the asset must be `CalDAV.zip`.
+Release tags are bare SemVer, for example
+[`0.1.2`](https://github.com/miyako/CalDAV/releases/tag/0.1.2), without a `v` prefix.
+For the metadata-only correction of the initial release, retain its separate
+`CalDAV-migration.json` together with the unchanged original signing proof and
+acceptance JSON; see the [migration contract](component/CalDAV/Documentation/Release-migration.md).
 Alternatively unpack a locally accepted ZIP and put `CalDAV.4dbase` in the
 host's `Components/` folder. This is separate-process CLI execution, not a
 plug-in loader. Signing is optional by version policy; unsigned downloads may
