@@ -1,8 +1,8 @@
 {
-  "name": "4d-component-template",
+  "name": "CalDAV",
   "version": "0.1.0",
   "private": true,
-  "description": "Deterministic UTF-8 greeting example",
+  "description": "Remote CalDAV calendar discovery, recurrence-aware queries and conditional iCalendar event CRUD over TLS",
   "license": "MIT",
   "tool": {
     "platform": "macos",

@@ -1,0 +1,277 @@
+{
+	"_method_": {},
+	"cs.CalDAV": {
+		"_CLI": {
+			"new()": {
+				"Syntax": "**.new**( *executableName* : Text; *target* : Text )",
+				"Params": [
+					[
+						"executableName",
+						"Text",
+						"->"
+					],
+					[
+						"target",
+						"Text",
+						"->"
+					]
+				],
+				"Summary": ""
+			}
+		},
+		"Calendar": {
+			"new()": {
+				"Syntax": "**.new**( *target* : Text )",
+				"Params": [
+					[
+						"target",
+						"Text",
+						"->"
+					]
+				],
+				"Summary": ""
+			}
+		}
+	},
+	"_CLI": {
+		"execute()": {
+			"Syntax": "**.execute**( *arguments* : Collection; *input* : Text )->result : Object",
+			"Params": [
+				[
+					"arguments",
+					"Collection",
+					"->"
+				],
+				[
+					"input",
+					"Text",
+					"->"
+				],
+				[
+					"result",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"get compiled()": {
+			"Syntax": "**.get compiled**()->compiled : Boolean",
+			"Params": [
+				[
+					"compiled",
+					"Boolean",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"target": {
+			"Syntax": "target : Text"
+		},
+		"executableName": {
+			"Syntax": "executableName : Text"
+		}
+	},
+	"Calendar": {
+		"execute()": {
+			"Syntax": "**.execute**( *request* : Object )->result : Object",
+			"Params": [
+				[
+					"request",
+					"Object",
+					"->"
+				],
+				[
+					"result",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"get()": {
+			"Syntax": "**.get**( *request* : Object )->result : Object",
+			"Params": [
+				[
+					"request",
+					"Object",
+					"->"
+				],
+				[
+					"result",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"version()": {
+			"Syntax": "**.version**()->result : Object",
+			"Params": [
+				[
+					"result",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"delete()": {
+			"Syntax": "**.delete**( *request* : Object )->result : Object",
+			"Params": [
+				[
+					"request",
+					"Object",
+					"->"
+				],
+				[
+					"result",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"discover()": {
+			"Syntax": "**.discover**( *request* : Object )->result : Object",
+			"Params": [
+				[
+					"request",
+					"Object",
+					"->"
+				],
+				[
+					"result",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"build()": {
+			"Syntax": "**.build**( *event* : Object )->result : Object",
+			"Params": [
+				[
+					"event",
+					"Object",
+					"->"
+				],
+				[
+					"result",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"update()": {
+			"Syntax": "**.update**( *request* : Object )->result : Object",
+			"Params": [
+				[
+					"request",
+					"Object",
+					"->"
+				],
+				[
+					"result",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"query()": {
+			"Syntax": "**.query**( *request* : Object )->result : Object",
+			"Params": [
+				[
+					"request",
+					"Object",
+					"->"
+				],
+				[
+					"result",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"inspect()": {
+			"Syntax": "**.inspect**( *icalendar* : Text )->result : Object",
+			"Params": [
+				[
+					"icalendar",
+					"Text",
+					"->"
+				],
+				[
+					"result",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"create()": {
+			"Syntax": "**.create**( *request* : Object )->result : Object",
+			"Params": [
+				[
+					"request",
+					"Object",
+					"->"
+				],
+				[
+					"result",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		}
+	},
+	"_Process": {
+		"execute()": {
+			"Syntax": "**.execute**( *file* : 4D.File; *arguments* : Collection; *input* : Text )->result : Object",
+			"Params": [
+				[
+					"file",
+					"4D.File",
+					"->"
+				],
+				[
+					"arguments",
+					"Collection",
+					"->"
+				],
+				[
+					"input",
+					"Text",
+					"->"
+				],
+				[
+					"result",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"quote()": {
+			"Syntax": "**.quote**( *argument* : Text )->quoted : Text",
+			"Params": [
+				[
+					"argument",
+					"Text",
+					"->"
+				],
+				[
+					"quoted",
+					"Text",
+					"<-"
+				]
+			],
+			"Summary": ""
+		}
+	}
+}

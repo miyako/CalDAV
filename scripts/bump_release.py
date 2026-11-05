@@ -179,6 +179,9 @@ def plan(root, version, repository=None):
     literal("README.md", r"^\|[^\n]*`" + re.escape(config["cli"])
             + r" --version`[^\n]*" + protocol, required=True)
     literal(component / "Documentation/Classes" / (feature + ".md"), protocol, required=True)
+    protocol_document = component / "Documentation/Protocol.md"
+    if (root / protocol_document).exists():
+        literal(protocol_document, protocol, required=True)
     # The independent Python CLI test also contains a literal --version response.
     literal("tests/test_cli.py", protocol, required=True)
 
