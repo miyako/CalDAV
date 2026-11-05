@@ -6,7 +6,7 @@ The Go `caldav` executable is a separate process, not a 4D plug-in. It accepts
 tests. Never put credentials, account URLs, event text or request parameters in
 argv; the diagnostic is for nonsensitive fixture path text only.
 
-`--version` emits exactly `{"protocol":1,"version":"0.1.1"}` followed by LF,
+`--version` emits exactly `{"protocol":1,"version":"0.1.2"}` followed by LF,
 with empty stderr and exit status 0.
 
 `path --value TEXT` emits exactly `{"protocol":1,"path":TEXT}` plus LF,

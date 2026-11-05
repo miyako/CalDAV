@@ -16,7 +16,7 @@ Other targets fail with `unsupported_architecture`.
 | `create(request : Object) : Object` | Create event resource `url` from `icalendar` without overwriting |
 | `update(request : Object) : Object` | Replace event resource `url` from `icalendar`, conditional on `etag` |
 | `delete(request : Object) : Object` | Delete event resource `url`, conditional on `etag` |
-| `version() : Object` | Decode `{"protocol":1,"version":"0.1.1"}` |
+| `version() : Object` | Decode `{"protocol":1,"version":"0.1.2"}` |
 
 Remote request fields are `url`, `username`, `password`, `icalendar`, `etag`,
 `start`, `end` and `event`, as required by the operation. Supply credentials for each call;

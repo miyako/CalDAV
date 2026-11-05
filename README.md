@@ -99,7 +99,7 @@ UTF-8 JSON, one request object on stdin, exactly one JSON response plus LF.
 | Invocation | Result |
 | --- | --- |
 | `caldav request` | Read bounded stdin JSON; return a protocol-1 operation/data envelope or explicit stderr error |
-| `caldav --version` | `{"protocol":1,"version":"0.1.1"}` + LF |
+| `caldav --version` | `{"protocol":1,"version":"0.1.2"}` + LF |
 
 Never put credentials in the command line. The documented protocol includes
 offline `inspect` and `build` operations for local preparation/testing; network

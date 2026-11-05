@@ -6,6 +6,6 @@
   "cli": "caldav",
   "language": "go",
   "feature": "Remote CalDAV calendar discovery, recurrence-aware queries and conditional iCalendar event CRUD over TLS",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "feature_class": "Calendar"
 }

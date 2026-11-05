@@ -1,6 +1,6 @@
 {
   "name": "CalDAV",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "description": "Remote CalDAV calendar discovery, recurrence-aware queries and conditional iCalendar event CRUD over TLS",
   "license": "MIT",
