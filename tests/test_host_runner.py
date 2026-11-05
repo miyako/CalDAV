@@ -1,6 +1,7 @@
 import copy
 import importlib.util
 import json
+import re
 from pathlib import Path
 import shutil
 import subprocess
@@ -18,9 +19,12 @@ CONTRACT = json.loads((ROOT / "tests/host/contract.json").read_text(encoding="ut
 
 def valid_status(compiled=False):
     status = {"success": True, "finished": True, "compiled": compiled,
-              "cases": [{"ok": True, **copy.deepcopy(case)} for case in CONTRACT["feature"]["cases"]],
+              "cases": [],
               "fileArgument": {"ok": True, "stdout": "file round trip", "stderr": "", "exitCode": 0},
               "folderArgument": {"ok": True, "stdout": "folder round trip", "stderr": "", "exitCode": 0}}
+    for path in CONTRACT["execution"]["successPaths"]:
+        status[path.removeprefix("/")] = {
+            "ok": True, "stdout": "synthetic response\n", "stderr": "", "exitCode": 0}
     def apply_assertions(value, assertions):
         for assertion in assertions:
             tokens = assertion["path"].split("/")[1:]
@@ -34,12 +38,26 @@ def valid_status(compiled=False):
             key = int(tokens[-1]) if isinstance(destination, list) else tokens[-1]
             if "equals" in assertion:
                 destination[key] = copy.deepcopy(assertion["equals"])
+            if "matches" in assertion:
+                examples = ("synthetic response\n", "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nEND:VCALENDAR\r\n",
+                            "日本語 " + "0123456789abcdef" * 3072)
+                destination[key] = next(example for example in examples
+                                        if re.fullmatch(assertion["matches"], example))
             if "length" in assertion:
                 destination[key] = [{} for _ in range(assertion["length"])]
             if "each" in assertion:
                 destination[key] = [apply_assertions(entry, assertion["each"]) for entry in destination[key]]
         return value
 
+    feature = CONTRACT["feature"]
+    if "cases" in feature:
+        status["cases"] = [{"ok": True, **copy.deepcopy(case)} for case in feature["cases"]]
+    else:
+        status["cases"] = [
+            apply_assertions({"ok": True, "stdout": "synthetic feature response\n",
+                              "stderr": "", "exitCode": 0, "value": {}},
+                             feature["caseAssertions"])
+            for _ in range(feature["caseCount"])]
     for section in ("feature", "execution"):
         status = apply_assertions(status, CONTRACT[section]["assertions"])
     assertions = {entry["path"]: entry for entry in CONTRACT["execution"]["assertions"]}
@@ -210,7 +228,7 @@ class ContractTests(unittest.TestCase):
                 lambda c: c["feature"].update(cases=[]),
                 lambda c: c["feature"].update(assertions=[]),
                 lambda c: c["execution"].update(assertions=[]),
-                lambda c: c["feature"]["cases"][0].pop("value"),
+                lambda c: c["feature"].update(caseAssertions=[]),
                 lambda c: c["execution"].update(successPaths=None),
                 lambda c: c["execution"]["assertions"].append({"path": "/success", "equal": True})):
             contract = copy.deepcopy(CONTRACT)

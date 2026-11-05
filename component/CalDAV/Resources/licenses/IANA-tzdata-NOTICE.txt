@@ -1,0 +1,25 @@
+The Go standard-library time/tzdata package embeds the IANA Time Zone
+Database supplied by the Go toolchain used to build the executable.
+
+Go's lib/time/README states:
+
+The zoneinfo.zip archive contains time zone files compiled using
+the code and data maintained as part of the IANA Time Zone Database.
+The IANA asserts that the database is in the public domain.
+
+For more information, see
+https://www.iana.org/time-zones
+https://datatracker.ietf.org/doc/html/rfc6557
+
+The upstream tz 2025b LICENSE was reviewed alongside Go 1.25.1:
+https://github.com/eggert/tz/blob/2025b/LICENSE
+https://github.com/golang/go/blob/go1.25.1/lib/time/README
+
+Unless specified below, all files in the tz code and data (including
+this LICENSE file) are in the public domain.
+
+If the files date.c, newstrftime.3, and strftime.c are present, they
+contain material derived from BSD and use the BSD 3-clause license.
+
+Those standalone C utilities are not bundled by this component. Go
+runtime/standard-library code is covered separately by Go-LICENSE.txt.

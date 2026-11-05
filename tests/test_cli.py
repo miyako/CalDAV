@@ -1,208 +1,118 @@
+"""Independent stdin protocol checks; network/feature cases also run in Go."""
 import json
 import os
 from pathlib import Path
-import shutil
 import subprocess
+import sys
 import tempfile
 import unittest
 
-
 ROOT = Path(__file__).resolve().parents[1]
-STARTERS = ROOT / "cli-starters"
-ERROR = (
-    b'{"protocol":1,"error":{"code":"invalid_arguments","message":'
-    b'"expected greet --name <non-empty UTF-8 name> or --version"}}\n'
+sys.path.insert(0, str(ROOT / "scripts"))
+from build_cli import smoke_test
+
+ICALENDAR = (
+    "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//CalDAV Tests//EN\r\n"
+    "BEGIN:VEVENT\r\nUID:stable-test@example.invalid\r\n"
+    "DTSTAMP:20261101T000000Z\r\nDTSTART;VALUE=DATE:20261106\r\n"
+    "DTEND;VALUE=DATE:20261107\r\nSUMMARY:Calendar test\r\n"
+    "END:VEVENT\r\nEND:VCALENDAR\r\n"
 )
 
 
-def json_line(value):
-    return (json.dumps(value, ensure_ascii=False, separators=(",", ":")) + "\n").encode("utf-8")
-
-
-class ContractTests:
+class CalDAVCLI(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        selected = os.environ.get("TEST_CLI_LANGUAGE")
-        if selected not in (None, "none", "go", "rust", "cpp"):
-            raise RuntimeError("TEST_CLI_LANGUAGE must be none, go, rust, or cpp")
-        if selected == "none":
-            raise unittest.SkipTest("CLI toolchains disabled by TEST_CLI_LANGUAGE=none")
-        if selected is not None and selected != cls.language:
-            raise unittest.SkipTest("TEST_CLI_LANGUAGE selects " + selected)
+        if os.environ.get("TEST_CLI_LANGUAGE") == "none":
+            raise unittest.SkipTest("CLI disabled explicitly")
+        cls.scratch = tempfile.TemporaryDirectory(prefix="caldav cli path ")
+        cls.addClassCleanup(cls.scratch.cleanup)
+        cls.executable = Path(cls.scratch.name) / ("caldav.exe" if os.name == "nt" else "caldav")
+        env = os.environ.copy()
+        env.update(CGO_ENABLED="0", GOTOOLCHAIN="local")
+        env.pop("GOOS", None)
+        env.pop("GOARCH", None)
+        subprocess.run(["go", "build", "-mod=readonly", "-trimpath", "-o", str(cls.executable), "."],
+                       cwd=ROOT / "cli", env=env, check=True, timeout=180)
 
-        config_path = ROOT / "template.json"
-        config = json.loads(config_path.read_text(encoding="utf-8")) if config_path.exists() else {}
-        initialized = config.get("initialized", False) or (ROOT / "cli").is_dir()
-        if initialized:
-            configured = config.get("language")
-            if configured not in ("go", "rust", "cpp"):
-                raise RuntimeError("initialized template.json must configure a CLI language")
-            if configured != cls.language:
-                if selected is not None:
-                    raise RuntimeError(
-                        "TEST_CLI_LANGUAGE selects " + selected
-                        + " but template.json configures " + configured
-                    )
-                raise unittest.SkipTest("initialized template selects " + configured)
-            original = ROOT / "cli"
-            executable_name = config["cli"]
-        else:
-            original = STARTERS / cls.language
-            executable_name = "component-cli"
-        if not original.is_dir():
-            raise RuntimeError("missing CLI source directory: " + str(original))
-
-        def unavailable(message):
-            if selected is not None:
-                raise RuntimeError("selected " + cls.language + " toolchain unavailable: " + message)
-            raise unittest.SkipTest("unavailable toolchain: " + message)
-
-        missing = [tool for tool in cls.tools if shutil.which(tool) is None]
-        if missing:
-            unavailable(", ".join(missing))
-        compiler = None
-        if cls.language == "cpp" and os.name != "nt":
-            compiler = next(
-                (shutil.which(tool) for tool in ("c++", "g++", "clang++") if shutil.which(tool)),
-                None,
-            )
-            if compiler is None:
-                unavailable("C++17 compiler")
-        scratch = tempfile.TemporaryDirectory(prefix=".cli-test path ", dir=Path(__file__).parent)
-        cls.addClassCleanup(scratch.cleanup)
-        root = Path(scratch.name)
-        source = root / "source"
-        shutil.copytree(original, source)
-        environment = os.environ.copy()
-        executable_name += ".exe" if os.name == "nt" else ""
-        execution_directory = root / "executables with spaces"
-        execution_directory.mkdir()
-        cls.executable = execution_directory / executable_name
-        if cls.language == "go":
-            environment.pop("GOOS", None)
-            environment.pop("GOARCH", None)
-            environment["CGO_ENABLED"] = "0"
-            environment.update(
-                GOCACHE=str(root / "go-cache"),
-                GOPATH=str(root / "go-path"),
-                GOTOOLCHAIN="local",
-                GOPROXY="off",
-                GOSUMDB="off",
-            )
-            commands = [["go", "build", "-o", str(cls.executable), "."]]
-        elif cls.language == "rust":
-            environment.pop("CARGO_BUILD_TARGET", None)
-            environment["CARGO_TARGET_DIR"] = str(root / "target")
-            built_executable = root / "target" / "release" / executable_name
-            commands = [["cargo", "build", "--release", "--offline", "--locked"]]
-        else:
-            build = root / "build"
-            built_executable = build / executable_name
-            commands = [
-                ["cmake", "-S", str(source), "-B", str(build),
-                 "-DCMAKE_BUILD_TYPE=Release",
-                 *([] if os.name == "nt" else ["-DCMAKE_CXX_COMPILER=" + compiler]),
-                 *(["-A", "x64"] if os.name == "nt" else [])],
-                ["cmake", "--build", str(build), "--config", "Release"],
-            ]
-        for command in commands:
-            result = subprocess.run(
-                command, cwd=source, env=environment, capture_output=True, timeout=180
-            )
-            if result.returncode:
-                raise RuntimeError(
-                    "build failed: " + repr(command) + "\n"
-                    + result.stdout.decode("utf-8", errors="replace")
-                    + result.stderr.decode("utf-8", errors="replace")
-                )
-        if cls.language == "cpp" and not built_executable.exists():
-            built_executable = build / "Release" / executable_name
-        if cls.language != "go":
-            shutil.copy2(built_executable, cls.executable)
-
-    def assert_result(self, arguments, status, stdout, stderr):
-        result = subprocess.run(
-            [os.fspath(self.executable), *arguments], capture_output=True, timeout=10
-        )
-        self.assertEqual(result.returncode, status)
-        self.assertEqual(result.stdout, stdout)
-        self.assertEqual(result.stderr, stderr)
+    def run_cli(self, arguments, value=b""):
+        return subprocess.run([str(self.executable), *arguments], input=value,
+                              capture_output=True, timeout=30)
 
     def test_version(self):
-        self.assert_result(["--version"], 0, b'{"protocol":1,"version":"0.1.0"}\n', b"")
+        result = self.run_cli(["--version"])
+        self.assertEqual(result.returncode, 0)
+        self.assertEqual(result.stdout, b'{"protocol":1,"version":"0.1.0"}\n')
+        self.assertEqual(result.stderr, b"")
 
-    def test_name(self):
-        self.assertIn(" ", str(self.executable))
-        name = '😀 "quoted" \\backslash; \'$()\''
-        self.assert_result(
-            ["greet", "--name", name], 0,
-            json_line({"protocol": 1, "message": "Hello, " + name + "!"}), b"",
-        )
+    def test_contract(self):
+        config = json.loads((ROOT / "template.json").read_text())
+        smoke_test(self.executable, config["version"], ROOT / "tests/cli-contract.json")
 
-    def test_names(self):
-        names = [
-            "World", "two words", " ", " leading and trailing ",
-            "世界 café 😀", 'a"b\\c', "line\nbreak", "\t\r\b\f",
-            "".join(chr(value) for value in range(1, 32)),
-            "<>&/\u2028\u2029", "\u007f\u0080\u07ff\u0800\uffff\U0010ffff",
-            "--version", "$(echo not-executed); `echo nope`",
-        ]
-        for name in names:
-            with self.subTest(name=name):
-                self.assert_result(
-                    ["greet", "--name", name], 0,
-                    json_line({"protocol": 1, "message": "Hello, " + name + "!"}), b"",
-                )
+    def test_inspect_stdin(self):
+        request = {"protocol": 1, "operation": "inspect", "icalendar": ICALENDAR}
+        result = self.run_cli(["request"], json.dumps(request).encode())
+        self.assertEqual(result.returncode, 0, result.stderr)
+        value = json.loads(result.stdout)
+        self.assertEqual(value["protocol"], 1)
+        self.assertEqual(value["operation"], "inspect")
+        self.assertIsInstance(value["data"], dict)
+        self.assertEqual(value["data"]["icalendar"], ICALENDAR)
+        self.assertEqual(result.stderr, b"")
 
-    def test_invalid_arguments(self):
-        cases = [
-            [], [""], ["unknown"], ["greet"], ["greet", "--name"],
-            ["greet", "--name", ""], ["greet", "World"],
-            ["greet", "--name=World"], ["greet", "--unknown", "World"],
-            ["greet", "--name", "World", "--name", "Again"],
-            ["greet", "--name", "World", "extra"],
-            ["--name", "World", "greet"], ["greet", "--version"],
-            ["--version", "extra"], ["--version", "--version"],
-            ["greet", "--name", "World", "--version"],
-            ["GREET", "--name", "World"], ["greet", "--Name", "World"],
-        ]
-        for arguments in cases:
-            with self.subTest(arguments=arguments):
-                self.assert_result(arguments, 2, b"", ERROR)
+    def test_large_multiline_unicode_input_is_not_truncated(self):
+        long_text = (" x-" + "\u65e5\u672c\u8a9e" * 7 + "\r\n") * 600
+        properties = "DESCRIPTION:large\r\n" + long_text
+        for index in range(3):
+            properties += f"X-PAYLOAD-{index}:large\r\n" + long_text
+        calendar = ICALENDAR.replace("SUMMARY:Calendar test\r\n",
+                                    "SUMMARY:\u65e5\u672c\u8a9e\r\n" + properties)
+        self.assertGreater(len(calendar.encode("utf-8")), 128 * 1024)
+        result = self.run_cli(["request"], json.dumps(
+            {"protocol": 1, "operation": "inspect", "icalendar": calendar},
+            ensure_ascii=False).encode("utf-8"))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout)["data"]["icalendar"], calendar)
 
-    @unittest.skipUnless(os.name == "posix", "raw byte arguments require POSIX")
-    def test_malformed_utf8(self):
-        malformed = [
-            b"\x80", b"\xff", b"\xc0\xaf", b"\xc1\xbf", b"\xc2",
-            b"\xe2\x82", b"\xe2(\xa1", b"\xe0\x80\x80", b"\xed\xa0\x80",
-            b"\xf0\x80\x80\x80", b"\xf4\x90\x80\x80", b"\xf5\x80\x80\x80",
-            b"\xf8\x88\x80\x80\x80", b"valid\xfe",
-        ]
-        for value in malformed:
-            for arguments in (
-                [b"greet", b"--name", value],
-                [value, b"--name", b"World"],
-                [b"greet", value, b"World"],
-                [b"--version", value],
-            ):
-                with self.subTest(arguments=arguments):
-                    self.assert_result(arguments, 2, b"", ERROR)
+    def test_oversized_input_fails_without_echoing_payload(self):
+        result = self.run_cli(["request"], b"x" * (4 * 1024 * 1024))
+        self.assertEqual(result.returncode, 2)
+        self.assertEqual(result.stdout, b"")
+        self.assertLess(len(result.stderr), 1024)
+        self.assertIsInstance(json.loads(result.stderr)["error"]["code"], str)
 
+    def test_malformed_stdin_is_explicit_and_redacted(self):
+        for value in (b"", b"\xff", b"[]", b"null", b"{}", b"{}{}",
+                      b'{"protocol":true,"operation":"inspect"}',
+                      b'{"protocol":1,"operation":"inspect","password":"synthetic-redaction-marker","unknown":1}'):
+            with self.subTest(value=value[:32]):
+                result = self.run_cli(["request"], value)
+                self.assertEqual(result.returncode, 2)
+                self.assertEqual(result.stdout, b"")
+                error = json.loads(result.stderr)
+                self.assertEqual(error["protocol"], 1)
+                self.assertIsInstance(error["error"]["code"], str)
+                self.assertNotIn(b"synthetic-redaction-marker", result.stderr)
 
-class GoCLI(ContractTests, unittest.TestCase):
-    language = "go"
-    tools = ("go",)
+    def test_credentials_not_accepted_as_arguments(self):
+        result = self.run_cli(["request", "--password", "synthetic-redaction-marker"])
+        self.assertEqual(result.returncode, 2)
+        self.assertEqual(result.stdout, b"")
+        self.assertNotIn(b"synthetic-redaction-marker", result.stderr)
 
 
-class RustCLI(ContractTests, unittest.TestCase):
-    language = "rust"
-    tools = ("cargo", "rustc")
-
-
-class CppCLI(ContractTests, unittest.TestCase):
-    language = "cpp"
-    tools = ("cmake",)
-
-
-if __name__ == "__main__":
-    unittest.main()
+class StdinSmokeContract(unittest.TestCase):
+    def test_stdin_vectors_are_executed(self):
+        from unittest.mock import patch
+        with tempfile.TemporaryDirectory() as directory:
+            contract = Path(directory) / "contract.json"
+            contract.write_text(json.dumps({"schema": 1, "cases": [
+                {"args": ["request"], "stdin": "input text", "exitCode": 0,
+                 "stdout": "response\n", "stderr": ""},
+                {"args": ["request"], "stdin": "", "exitCode": 2,
+                 "stdout": "", "stderr": "invalid\n"}]}))
+            with patch("build_cli.subprocess.run", side_effect=[
+                    subprocess.CompletedProcess([], 0, b"response\n", b""),
+                    subprocess.CompletedProcess([], 2, b"", b"invalid\n")]) as run:
+                smoke_test(Path(directory) / "caldav", "0.1.0", contract)
+                self.assertEqual(run.call_args_list[0].kwargs["input"], b"input text")
