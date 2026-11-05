@@ -64,16 +64,18 @@ class BumpReleaseTests(unittest.TestCase):
                 self.assertEqual(before[name], after[name])
 
     def test_next_highest_stable_numeric_tag_and_modes(self):
-        for tag in ("v1.9.9", "v1.10.2", "v20.0.0-rc.1", "v9.0.0+build", "v01.0.0"):
+        for tag in ("1.9.9", "1.10.2", "20.0.0-rc.1", "9.0.0+build", "01.0.0",
+                    "v99.0.0"):
             self.git("tag", tag)
         for mode, version in (("patch", "1.10.3"), ("minor", "1.11.0"), ("major", "2.0.0")):
-            self.assertEqual(bump_release.next_version(self.root, mode)["version"], version)
+            self.assertEqual(bump_release.next_version(self.root, mode),
+                             {"version": version, "tag": version})
 
     def test_no_tag_and_retry(self):
         major, minor, patch_number = map(int, self.version.split("."))
         self.assertEqual(bump_release.next_version(self.root, "patch")["version"],
                          f"{major}.{minor}.{patch_number + 1}")
-        self.git("tag", "v0.1.0")
+        self.git("tag", "0.1.0")
         bump_release.apply(self.root, "0.1.1")
         self.assertEqual(bump_release.next_version(self.root, "patch")["version"], "0.1.1")
 
@@ -130,7 +132,7 @@ class BumpReleaseTests(unittest.TestCase):
         before = self.snapshot()
         for mode in ("patch", "minor", "major"):
             with self.subTest(mode=mode), self.assertRaisesRegex(ValueError, "ahead"):
-                bump_release.next_version(self.root, mode, tags=["v1.2.3"])
+                bump_release.next_version(self.root, mode, tags=["1.2.3"])
         self.assertEqual(before, self.snapshot())
 
     def test_policy_history_dependencies_and_arbitrary_versions_unchanged(self):
@@ -171,5 +173,5 @@ class BumpReleaseTests(unittest.TestCase):
         contract.write_text(contract.read_text().replace("1.2.4", "1.2.3"))
         before = self.snapshot()
         with self.assertRaisesRegex(ValueError, "inconsistent"):
-            bump_release.next_version(self.root, "patch", tags=["v1.2.3"])
+            bump_release.next_version(self.root, "patch", tags=["1.2.3"])
         self.assertEqual(before, self.snapshot())

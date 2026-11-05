@@ -255,8 +255,7 @@ def next_version(root, mode, repository=None, *, tags=None):
         tags = result.stdout.splitlines()
     if not isinstance(tags, (list, tuple)) or not all(isinstance(tag, str) for tag in tags):
         raise ValueError("tags must be a list of tag names")
-    releases = [stable(tag[1:]) for tag in tags
-                if re.fullmatch("v" + STABLE, tag)]
+    releases = [stable(tag) for tag in tags if re.fullmatch(STABLE, tag)]
     base = max(releases) if releases else stable(config["version"])
     major, minor, patch = base
     value = {"patch": (major, minor, patch + 1), "minor": (major, minor + 1, 0),
@@ -264,7 +263,7 @@ def next_version(root, mode, repository=None, *, tags=None):
     if stable(config["version"]) > value:
         raise ValueError("configured version is ahead of the next stable release; refusing a downgrade")
     version = ".".join(map(str, value))
-    return {"version": version, "tag": "v" + version}
+    return {"version": version, "tag": version}
 
 
 def apply(root, version, repository=None, *, stage=False):
@@ -275,7 +274,7 @@ def apply(root, version, repository=None, *, stage=False):
     if stage and updates:
         subprocess.run(["git", "add", "--", *sorted(updates)], cwd=root, check=True,
                        capture_output=True, text=True, encoding="utf-8")
-    return {"version": version, "tag": "v" + version, "changed_paths": sorted(updates)}
+    return {"version": version, "tag": version, "changed_paths": sorted(updates)}
 
 
 def main():

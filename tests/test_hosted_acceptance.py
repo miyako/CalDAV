@@ -43,7 +43,7 @@ class HostedAcceptanceTests(unittest.TestCase):
                 return_value=subprocess.CompletedProcess([], 0, "tool4d 20.7 101905\n", "")), patch(
                 "build_provenance.commit", return_value=None), patch.object(
                 accept_hosted, "commit", return_value="a" * 40 if signed else None):
-            return accept_hosted.accept(self.root, "owner/example-component", self.tool, "v0.1.0", signed)
+            return accept_hosted.accept(self.root, "owner/example-component", self.tool, "0.1.0", signed)
 
     def test_accepted_zip_has_embedded_native_and_both_host_reports(self):
         report = self.accept()
@@ -127,7 +127,7 @@ class HostedAcceptanceTests(unittest.TestCase):
                 unsigned = json.loads((self.root / "build/hosted-acceptance.json").read_text())[
                     "unsigned_artifact"]
                 proof = {
-                    "schema": 1, "version": "0.1.0", "sourceSHA": "a" * 40, "releaseTag": "v0.1.0",
+                    "schema": 1, "version": "0.1.0", "sourceSHA": "a" * 40, "releaseTag": "0.1.0",
                     "unsignedCompileInputSHA256": self.fixture.status["input_sha256"],
                     "unsignedZIPHashSHA256": unsigned["sha256"],
                     "hostValidation": "required-after-signing",

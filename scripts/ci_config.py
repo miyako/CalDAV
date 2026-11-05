@@ -72,8 +72,8 @@ def load_config(root=ROOT, *, initialized=False, repository=None, tag=None):
             raise ValueError("repository identity must be owner/name")
         if repository.split("/")[1] != config["repository"]:
             raise ValueError("actual repository does not match template.json")
-    if tag is not None and tag != "v" + config["version"]:
-        raise ValueError("release tag must equal v<template.json version>")
+    if tag is not None and tag != config["version"]:
+        raise ValueError("release tag must equal template.json version without a prefix")
     return config
 
 

@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "kind": "release-tag-migration",
+  "repository": "miyako/CalDAV",
+  "release_id": 435874038,
+  "version": "0.1.2",
+  "original_tag": "v0.1.2",
+  "tag": "0.1.2",
+  "commit": "aaa06f1da641bd2d21604a278a4ec8c05513f66c",
+  "original_publish_run": "https://github.com/miyako/CalDAV/actions/runs/42128674737",
+  "metadata_only": true,
+  "rebuilt": false,
+  "resigned": false,
+  "assets": [
+    {
+      "name": "CalDAV.zip",
+      "bytes": 16230090,
+      "sha256": "93bcc0934da60fefc5eeace4df05eee6be984c744f2083c541ac3f1489988fab"
+    },
+    {
+      "name": "CalDAV.dmg",
+      "bytes": 18227867,
+      "sha256": "cd84a0e0ebc79a37d88063de3c076491c3cb292acfc4177a7973718fa6a3a5b1"
+    },
+    {
+      "name": "CalDAV-signing.json",
+      "bytes": 995,
+      "sha256": "2a3174ffc6c10e610bd1a5af880096dd53a167bee5796177a64490f0defd1141"
+    },
+    {
+      "name": "CalDAV.acceptance.json",
+      "bytes": 1477410,
+      "sha256": "ed89188e7e2bb8c8322c5c2c7e254944943d3470d6d6824bfd81c4cbf99344e2"
+    }
+  ]
+}

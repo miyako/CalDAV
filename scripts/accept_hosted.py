@@ -69,7 +69,7 @@ def accept(root, repository, tool4d, tag=None, require_apple_signing=False):
         (output.parent / "source-host-status.json").write_text(json.dumps(source, indent=2) + "\n")
         step("compile", lambda: compile_component(root, tool))
         archive = step("package", lambda: package(
-            root, repository=repository, tag=tag or "v" + config["version"]))
+            root, repository=repository, tag=tag or config["version"]))
         assets = [archive]
         if require_apple_signing:
             unsigned_hash = sha256(archive)
