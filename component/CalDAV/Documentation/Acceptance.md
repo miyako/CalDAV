@@ -59,8 +59,17 @@ not exhaustive occurrence matching or live DST/custom-zone behavior.
 
 ## Publication boundary
 
-The initial intended workflow version is `0.1.1` (patch from `0.1.0`, with no
-existing stable tag at inspection). Its version policy requires Apple signing:
+The first [Publish attempt](https://github.com/miyako/CalDAV/actions/runs/42126792241)
+created the `0.1.1` metadata commit
+`d35c3e2fad16d58f30a1a5ee315057d2625d55f9`, then stopped at three version-test
+fixture assertions hardcoded to `0.1.0`. It never reached signing, tagging or
+publication: **`0.1.1` was not published**. The assertions now derive the copied
+fixture's configured version without changing production version selection.
+
+With no existing stable tag, the existing workflow uses the current configured
+version as its bump base. The user explicitly selected the next patch,
+**`0.1.2`**, rather than rewriting history or adding retry infrastructure.
+The version policy requires Apple signing for both candidates:
 missing credentials, failed signing/notarization or failed final-host checks
 must stop publication, not fall back to unsigned.
 

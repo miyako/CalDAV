@@ -27,6 +27,7 @@ class BumpReleaseTests(unittest.TestCase):
             destination = self.root / name
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(ROOT / name, destination)
+        self.version = json.loads((self.root / "template.json").read_text())["version"]
         self.git("init", "-q")
         self.git("config", "user.name", "Release fixture")
         self.git("config", "user.email", "release-fixture@example.invalid")
@@ -69,7 +70,9 @@ class BumpReleaseTests(unittest.TestCase):
             self.assertEqual(bump_release.next_version(self.root, mode)["version"], version)
 
     def test_no_tag_and_retry(self):
-        self.assertEqual(bump_release.next_version(self.root, "patch")["version"], "0.1.1")
+        major, minor, patch_number = map(int, self.version.split("."))
+        self.assertEqual(bump_release.next_version(self.root, "patch")["version"],
+                         f"{major}.{minor}.{patch_number + 1}")
         self.git("tag", "v0.1.0")
         bump_release.apply(self.root, "0.1.1")
         self.assertEqual(bump_release.next_version(self.root, "patch")["version"], "0.1.1")
@@ -92,7 +95,7 @@ class BumpReleaseTests(unittest.TestCase):
         for name in ("README.md", "tests/test_cli.py", "tests/host/contract.json"):
             path = self.root / name
             original = path.read_text()
-            changed = original.replace("0.1.0", "0.9.9")
+            changed = original.replace(self.version, "0.9.9")
             self.assertNotEqual(original, changed)
             path.write_text(changed)
             before = self.snapshot()
@@ -140,7 +143,8 @@ class BumpReleaseTests(unittest.TestCase):
         before = self.snapshot()
         bump_release.apply(self.root, "0.2.0")
         self.assertEqual(readme.read_text(),
-                         original.replace('"version":"0.1.0"', '"version":"0.2.0"') + history)
+                         original.replace('"version":"' + self.version + '"',
+                                          '"version":"0.2.0"') + history)
         after = self.snapshot()
         for name in ("cli/go.mod", "cli/go.sum", "release-policy.json"):
             if name in before:

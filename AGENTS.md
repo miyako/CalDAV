@@ -575,6 +575,9 @@ even at the same SHA; no force/update/delete operation is used.
 No automatic tag-push release trigger exists.
 Failed builds leave the main version commit, not a tag/release. Retrying with
 the same mode can reuse that candidate when the stable base is unchanged.
+Before the first stable tag exists, the configured version is the bump base;
+another dispatch advances it again. Do not rewrite history or precreate a tag
+to reuse an initial failed candidate.
 A failure after tag push retains the tag and requires explicit inspection;
 never delete/force a tag, overwrite a release or pretend a failed stage passed.
 Do not manually dispatch publication or create a tag without user permission.

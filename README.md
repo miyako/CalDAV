@@ -166,7 +166,7 @@ ZIP/evidence without publication. **Publish** is manual, main-only, accepts
 patch/minor/major, commits synchronized versions and accepts the exact revision
 before creating its tag/release. Do not dispatch it without further approval.
 Unsigned is default for unlisted versions; [release-policy.json](release-policy.json) requires
-Apple signing/notarization for the initial `0.1.1` release through the
+Apple signing/notarization for the initial published `0.1.2` release through the
 existing isolated Apple signing/notarized-DMG path, followed by final-ZIP host
 retesting. No signing credentials are needed for local unsigned acceptance.
 

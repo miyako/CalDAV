@@ -35,7 +35,7 @@ func call(t *testing.T, r request) (int, string, string) {
 
 func TestVersionAndInspect(t *testing.T) {
 	var out, err bytes.Buffer
-	if code := run([]string{"--version"}, strings.NewReader(""), &out, &err); code != 0 || out.String() != "{\"protocol\":1,\"version\":\"0.1.0\"}\n" || err.Len() != 0 {
+	if code := run([]string{"--version"}, strings.NewReader(""), &out, &err); code != 0 || out.String() != fmt.Sprintf("{\"protocol\":1,\"version\":%q}\n", version) || err.Len() != 0 {
 		t.Fatal(code, out.String(), err.String())
 	}
 	code, s, diag := call(t, request{Protocol: 1, Operation: "inspect", ICalendar: sample})
