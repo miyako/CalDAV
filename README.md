@@ -153,15 +153,20 @@ are in `build/acceptance.json`, `build/source-host-status.json`,
 remains **partial / release_ready:false**; native Intel/Windows CLI and 4D,
 Dependency manager downloads, and live iCloud are separate gates.
 Live iCloud tests require explicit authorization for a dedicated test
-account/calendar; none is assumed. Synthetic loopback server tests never
-write to personal calendars.
+account/calendar; none is assumed by automated tests. On November 6, 2026,
+an explicitly authorized dedicated calendar passed controlled live event and
+all-day recurring-series round trips, conditional conflicts and cleanup.
+The actual compiled macOS arm64 4D facade also passed live discovery/query.
+See [dated acceptance evidence and remaining limits](component/CalDAV/Documentation/Acceptance.md).
+Synthetic loopback server tests never write to personal calendars.
 
 Exactly two workflows are retained: **CI** validates selected-language native
 artifacts; optional hosted 4D inspection (`FOURD_ENABLED=true`) retains compiled
 ZIP/evidence without publication. **Publish** is manual, main-only, accepts
 patch/minor/major, commits synchronized versions and accepts the exact revision
 before creating its tag/release. Do not dispatch it without further approval.
-Unsigned is default; [release-policy.json](release-policy.json) can require the
+Unsigned is default for unlisted versions; [release-policy.json](release-policy.json) requires
+Apple signing/notarization for the initial `0.1.1` release through the
 existing isolated Apple signing/notarized-DMG path, followed by final-ZIP host
 retesting. No signing credentials are needed for local unsigned acceptance.
 
